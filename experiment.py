@@ -12,13 +12,13 @@ class Experiment():
             # unpack arguments
             sig = inspect.signature(func)
             for i, p in enumerate(sig.parameters):
-                if i < len(args): # positional arguments have highest priority
+                if i < len(args):                                   # positional arguments have highest priority
                     if p in kwargs:
                         raise TypeError('got multiple values for argument ' + p)
                     else:
                         kwargs[p] = args[i]
-                elif p not in kwargs: # kwargs second
-                    if hasattr(self, p): # class values third
+                elif p not in kwargs:                               # kwargs second
+                    if hasattr(self, p):                            # class values third
                         kwargs[p] = getattr(self, p) 
                     else:
                         default = sig.parameters[p].default 
@@ -58,22 +58,25 @@ def addmethod(cls, store=[]):
 class TestExp(Experiment):
     pass
 
-t = TestExp()
+t = TestExp() # object to hold arguments / results
 
-@addmethod(TestExp)
-def testfn(a=1):
-    return a
+@addmethod(TestExp) # add the function to the experiment
+def testfn(x=0):    # but retain the pure function in namespace
+    return x
 
-@addmethod(TestExp, 'b')
-def teststore(a=1):
-    return a
 
-assert testfn() == 1
-assert testfn(2) == 2
-assert t.testfn() == 1
-assert t.testfn(2) == 2
-t.a = 3
-assert t.testfn() == 3
+assert testfn() == 0 # function with default
+assert testfn(1) == 1 # function with arg
 
-assert t.teststore() == 3
-assert t.b == 3
+assert t.testfn() == 0 # method with default
+assert t.testfn(1) == 1 # method with arg
+t.x = 2
+assert t.testfn() == 2 # method with class value
+
+
+@addmethod(TestExp, 'b') # function saving result to experiment.b
+def teststore(x):
+    return x
+
+t.teststore(3)
+assert t.b == 3 # method saving the value
